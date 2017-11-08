@@ -3,9 +3,11 @@ import datetime
 import time
 import urllib
 import json
+import subprocess
 import urllib2
 import os
 import sys
+from collections import Counter
 
 # ElasticSearch Cluster to Monitor
 elasticServer = os.environ.get('ES_METRICS_CLUSTER_URL', 'http://localhost:9200')
@@ -81,6 +83,26 @@ def fetch_indexstats(clusterName):
     post_data(jsonData['_all'])
 
 
+
+def fetch_numberofproperties():
+    utc_datetime = datetime.datetime.utcnow()
+    endpoint = "/_mapping?pretty"
+    urlData = elasticServer + endpoint
+    response = urllib.urlopen(urlData) 
+    jsonData = json.loads(response.read())
+    metaJson = {};
+    metaJson['@timestamp'] = str(utc_datetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3])
+    for i in jsonData:
+        metaJson[i] = 'test'
+        #properties = Counter(player['type'] for player in jsonData[i]['mappings']['properties'])
+        #print jsonData[i]['mappings']
+    p1 = subprocess.Popen(['curl', 'localhost:9200/_mapping?pretty'],stdout=subprocess.PIPE)
+    p2 = subprocess.Popen(['grep', 'type'],stdin=p1.stdout,stdout=subprocess.PIPE)
+    p3 = subprocess.Popen(['wc', '-l'],stdin = p2.stdout,stdout=subprocess.PIPE)
+    p1.stdout.close()
+    p2.stdout.close()
+    number = p3.communicate()[0]
+
 def post_data(data):
     utc_datetime = datetime.datetime.utcnow()
     url_parameters = {'cluster': elasticMonitoringCluster, 'index': elasticIndex,
@@ -100,6 +122,7 @@ def main():
         fetch_clusterstats()
         fetch_nodestats(clusterName)
         fetch_indexstats(clusterName)
+        fetch_numberofproperties()
 
 
 if __name__ == '__main__':
