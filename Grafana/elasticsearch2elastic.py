@@ -93,6 +93,7 @@ def fetch_numberofproperties():
     metaJson = {};
     metaJson['@timestamp'] = str(utc_datetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3])
     for i in jsonData:
+        print i
         metaJson[i] = 'test'
         #properties = Counter(player['type'] for player in jsonData[i]['mappings']['properties'])
         #print jsonData[i]['mappings']
