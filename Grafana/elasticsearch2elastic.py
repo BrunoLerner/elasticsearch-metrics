@@ -7,6 +7,7 @@ import subprocess
 import urllib2
 import os
 import sys
+import re
 from collections import Counter
 
 # ElasticSearch Cluster to Monitor
@@ -90,19 +91,24 @@ def fetch_numberofproperties():
     urlData = elasticServer + endpoint
     response = urllib.urlopen(urlData) 
     jsonData = json.loads(response.read())
-    metaJson = {};
+    metaJson = {}
+    metaJson['numberOfProperties'] = {}
     metaJson['@timestamp'] = str(utc_datetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3])
     for i in jsonData:
-        print i
-        metaJson[i] = 'test'
-        #properties = Counter(player['type'] for player in jsonData[i]['mappings']['properties'])
-        #print jsonData[i]['mappings']
-    p1 = subprocess.Popen(['curl', 'localhost:9200/_mapping?pretty'],stdout=subprocess.PIPE)
-    p2 = subprocess.Popen(['grep', 'type'],stdin=p1.stdout,stdout=subprocess.PIPE)
-    p3 = subprocess.Popen(['wc', '-l'],stdin = p2.stdout,stdout=subprocess.PIPE)
-    p1.stdout.close()
-    p2.stdout.close()
-    number = p3.communicate()[0]
+        p = re.compile('(\S+)-\d{4}.\d{2}.\d{2}')
+        m = p.match(i)
+        if m != None:
+            index = m.group(1)
+            url = elasticServer + '/' + index + '/_mapping?pretty'
+            p1 = subprocess.Popen(['curl', url],stdout=subprocess.PIPE)
+            p2 = subprocess.Popen(['grep', 'type'],stdin=p1.stdout,stdout=subprocess.PIPE)
+            p3 = subprocess.Popen(['wc','-l'],stdin = p2.stdout,stdout=subprocess.PIPE)
+            p1.stdout.close()
+            p2.stdout.close()
+            number = p3.communicate()[0]           
+            metaJson['numberOfProperties'][m.group(1)] = number
+    print metaJson
+    post_data(metaJson)
 
 def post_data(data):
     utc_datetime = datetime.datetime.utcnow()
