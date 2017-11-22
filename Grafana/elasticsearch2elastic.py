@@ -99,6 +99,7 @@ def fetch_numberofproperties():
         m = p.match(i)
         if m != None:
             index = m.group(1)
+            print index
             url = elasticServer + '/' + index + '/_mapping?pretty'
             p1 = subprocess.Popen(['curl', url],stdout=subprocess.PIPE)
             p2 = subprocess.Popen(['grep', 'type'],stdin=p1.stdout,stdout=subprocess.PIPE)
