@@ -106,7 +106,7 @@ def fetch_numberofproperties():
             p1.stdout.close()
             p2.stdout.close()
             number = p3.communicate()[0]           
-            metaJson['numberOfProperties'][m.group(1)] = number
+            metaJson['numberOfProperties'][m.group(1)] = int(number)
     print metaJson
     post_data(metaJson)
 
