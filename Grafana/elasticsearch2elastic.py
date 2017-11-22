@@ -94,20 +94,24 @@ def fetch_numberofproperties():
     metaJson = {}
     metaJson['numberOfProperties'] = {}
     metaJson['@timestamp'] = str(utc_datetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3])
+    date = str(utc_datetime.strftime('%Y.%m.%d'))
     for i in jsonData:
-        p = re.compile('(\S+)-\d{4}.\d{2}.\d{2}')
+        p = re.compile('((\S+)-\d{4}.\d{2}).\d{2}')    
         m = p.match(i)
         if m != None:
-            index = m.group(1)
-            print index
-            url = elasticServer + '/' + index + '/_mapping?pretty'
-            p1 = subprocess.Popen(['curl', url],stdout=subprocess.PIPE)
-            p2 = subprocess.Popen(['grep', 'type'],stdin=p1.stdout,stdout=subprocess.PIPE)
-            p3 = subprocess.Popen(['wc','-l'],stdin = p2.stdout,stdout=subprocess.PIPE)
-            p1.stdout.close()
-            p2.stdout.close()
-            number = p3.communicate()[0]           
-            metaJson['numberOfProperties'][m.group(1)] = int(number)
+            if date in m.group(0): 
+                index = m.group(0)
+                url = elasticServer + '/' + index + '/_mapping?pretty'
+                p1 = subprocess.Popen(['curl', url],stdout=subprocess.PIPE)
+                p2 = subprocess.Popen(['grep', '\"type\"'],stdin=p1.stdout,stdout=subprocess.PIPE)
+                p3 = subprocess.Popen(['wc','-l'],stdin = p2.stdout,stdout=subprocess.PIPE)
+                p1.stdout.close()
+                p2.stdout.close()
+                number = p3.communicate()[0]  
+                if not hasattr(metaJson['numberOfProperties'],m.group(2)):
+                    metaJson['numberOfProperties'][m.group(2)] = {}    
+                metaJson['numberOfProperties'][m.group(2)]['props'] = int(number)
+                metaJson['numberOfProperties'][m.group(2)]['histogram'] = m.group(1)
     print metaJson
     post_data(metaJson)
 
