@@ -94,11 +94,11 @@ def fetch_numberofproperties():
     properties = {}
     properties['numberOfProperties'] = {}
     properties['numberOfProperties']['indexname'] = {}
-    # properties['@timestamp'] = str(utc_datetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3])
+    properties['@timestamp'] = str(utc_datetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3])
     histogram = {}
     histogram['Histogram'] = {}
     histogram['Histogram']['indexname'] = {}
-    # histogram['@timestamp'] = str(utc_datetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3])
+    histogram['@timestamp'] = str(utc_datetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3])
     date = str(utc_datetime.strftime('%Y.%m.%d'))
     for i in jsonData:
         p = re.compile('(\S+)-(\d{4}.\d{2}).\d{2}')    
@@ -106,7 +106,6 @@ def fetch_numberofproperties():
         if m != None:
             if date in m.group(0): 
                 index = m.group(0)
-                print index
                 url = elasticServer + '/' + index + '/_mapping?pretty'
                 p1 = subprocess.Popen(['curl', url],stdout=subprocess.PIPE)
                 p2 = subprocess.Popen(['grep', '\"type\"'],stdin=p1.stdout,stdout=subprocess.PIPE)
