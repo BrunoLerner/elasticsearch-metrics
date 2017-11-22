@@ -94,6 +94,9 @@ def fetch_numberofproperties():
     metaJson = {}
     metaJson['numberOfProperties'] = {}
     metaJson['@timestamp'] = str(utc_datetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3])
+    metaJson2 = {}
+    metaJson2['Histogram'] = {}
+    metaJson2['@timestamp'] = str(utc_datetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3])
     date = str(utc_datetime.strftime('%Y.%m.%d'))
     for i in jsonData:
         p = re.compile('((\S+)-\d{4}.\d{2}).\d{2}')    
@@ -111,10 +114,12 @@ def fetch_numberofproperties():
                 number = p3.communicate()[0]  
                 if not hasattr(metaJson['numberOfProperties'],m.group(2)):
                     metaJson['numberOfProperties'][m.group(2)] = {}    
-                metaJson['numberOfProperties'][m.group(2)]['props'] = int(number)
-                metaJson['numberOfProperties'][m.group(2)]['histogram'] = m.group(1)
+                metaJson['numberOfProperties'][m.group(2)] = int(number)
+                metaJson2['Histogram'][m.group(2)] = m.group(1)
     print metaJson
+    print metaJson2
     post_data(metaJson)
+    post_data(metaJson2)
 
 def post_data(data):
     utc_datetime = datetime.datetime.utcnow()
