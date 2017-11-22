@@ -91,15 +91,17 @@ def fetch_numberofproperties():
     urlData = elasticServer + endpoint
     response = urllib.urlopen(urlData) 
     jsonData = json.loads(response.read())
-    metaJson = {}
-    metaJson['numberOfProperties'] = {}
-    metaJson['@timestamp'] = str(utc_datetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3])
-    metaJson2 = {}
-    metaJson2['Histogram'] = {}
-    metaJson2['@timestamp'] = str(utc_datetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3])
+    properties = {}
+    properties['numberOfProperties'] = {}
+    properties['numberOfProperties']['indexname'] = {}
+    # properties['@timestamp'] = str(utc_datetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3])
+    histogram = {}
+    histogram['Histogram'] = {}
+    histogram['Histogram']['indexname'] = {}
+    # histogram['@timestamp'] = str(utc_datetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3])
     date = str(utc_datetime.strftime('%Y.%m.%d'))
     for i in jsonData:
-        p = re.compile('((\S+)-\d{4}.\d{2}).\d{2}')    
+        p = re.compile('(\S+)-(\d{4}.\d{2}).\d{2}')    
         m = p.match(i)
         if m != None:
             if date in m.group(0): 
@@ -111,15 +113,13 @@ def fetch_numberofproperties():
                 p3 = subprocess.Popen(['wc','-l'],stdin = p2.stdout,stdout=subprocess.PIPE)
                 p1.stdout.close()
                 p2.stdout.close()
-                number = p3.communicate()[0]  
-                if not hasattr(metaJson['numberOfProperties'],m.group(2)):
-                    metaJson['numberOfProperties'][m.group(2)] = {}    
-                metaJson['numberOfProperties'][m.group(2)] = int(number)
-                metaJson2['Histogram'][m.group(2)] = m.group(1)
-    print metaJson
-    print metaJson2
-    post_data(metaJson)
-    post_data(metaJson2)
+                number = p3.communicate()[0]    
+                properties['numberOfProperties']['indexname'][m.group(1)] = int(number)
+                histogram['Histogram']['indexname'][m.group(1)] = m.group(2)
+    print properties
+    print histogram
+    post_data(properties)
+    post_data(histogram)
 
 def post_data(data):
     utc_datetime = datetime.datetime.utcnow()
