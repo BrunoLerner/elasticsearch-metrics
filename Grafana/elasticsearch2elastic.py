@@ -133,6 +133,8 @@ def fetch_numberofindicesperdate():
                 dateDict[m.group(1)] += 1;
             else:
                 dateDict[m.group(1)] = 1;
+
+    document['@timestamp'] = str(utc_datetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3])
     document['Histogram'] = dateDict 
     print document   
     post_data(document);
