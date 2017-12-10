@@ -95,10 +95,10 @@ def fetch_numberofproperties():
     properties['numberOfProperties'] = {}
     properties['numberOfProperties']['indexname'] = {}
     properties['@timestamp'] = str(utc_datetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3])
-    histogram = {}
-    histogram['Histogram'] = {}
-    histogram['Histogram']['indexname'] = {}
-    histogram['@timestamp'] = str(utc_datetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3])
+    # histogram = {}
+    # histogram['Histogram'] = {}
+    # histogram['Histogram']['indexname'] = {}
+    # histogram['@timestamp'] = str(utc_datetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3])
     date = str(utc_datetime.strftime('%Y.%m.%d'))
     for i in jsonData:
         p = re.compile('(\S+)-(\d{4}.\d{2}).\d{2}')    
@@ -112,13 +112,33 @@ def fetch_numberofproperties():
                 p3 = subprocess.Popen(['wc','-l'],stdin = p2.stdout,stdout=subprocess.PIPE)
                 p1.stdout.close()
                 p2.stdout.close()
-                number = p3.communicate()[0]    
-                properties['numberOfProperties']['indexname'][m.group(1)] = int(number)
-                histogram['Histogram']['indexname'][m.group(1)] = m.group(2)
-    print properties
-    print histogram
+                number = int(p3.communicate()[0])    
+                properties['numberOfProperties']['indexname'][m.group(1)] = number
+                # histogram['Histogram']['indexname'][m.group(1)] = m.group(2)
     post_data(properties)
-    post_data(histogram)
+
+def fetch_numberofindicesperdate():
+    utc_datetime = datetime.datetime.utcnow()
+    endpoint = "/_cat/indices"
+    urlData = elasticServer + endpoint
+    dateDict = {}
+    p1 = subprocess.Popen(['curl', urlData],stdout=subprocess.PIPE)
+    output = p1.stdout.read()
+    for line in iter(output.splitlines()):
+        p = re.compile('\S+(\d{4}.\d{2}.\d{2})')
+        m = p.match(line)
+        print m
+        if m != None:
+            if dateDict.get(m.group(1),0) != 0:
+                dateDict[m.group(1)] += 1;
+            else:
+                dateDict[m.group(1)] = 1;
+    print dateDict    
+    post_data(dateDict);
+             
+
+
+    
 
 def post_data(data):
     utc_datetime = datetime.datetime.utcnow()
@@ -129,6 +149,7 @@ def post_data(data):
     try:
         req = urllib2.Request(url, headers=headers, data=json.dumps(data))
         f = urllib2.urlopen(req)
+        print f
     except Exception as e:
         print "Error:  {}".format(str(e))
 
@@ -140,6 +161,7 @@ def main():
         fetch_nodestats(clusterName)
         fetch_indexstats(clusterName)
         fetch_numberofproperties()
+        fetch_numberofindicesperdate()
 
 
 if __name__ == '__main__':
