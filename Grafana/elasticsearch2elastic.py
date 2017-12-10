@@ -122,19 +122,20 @@ def fetch_numberofindicesperdate():
     endpoint = "/_cat/indices"
     urlData = elasticServer + endpoint
     dateDict = {}
+    document = {}
     p1 = subprocess.Popen(['curl', urlData],stdout=subprocess.PIPE)
     output = p1.stdout.read()
     for line in iter(output.splitlines()):
-        p = re.compile('\S+(\d{4}.\d{2}.\d{2})')
+        p = re.compile('.*\s+\S+(\d{4}.\d{2}.\d{2})')
         m = p.match(line)
-        print m
         if m != None:
             if dateDict.get(m.group(1),0) != 0:
                 dateDict[m.group(1)] += 1;
             else:
                 dateDict[m.group(1)] = 1;
-    print dateDict    
-    post_data(dateDict);
+    document['Histogram'] = dateDict 
+    print document   
+    post_data(document);
              
 
 
