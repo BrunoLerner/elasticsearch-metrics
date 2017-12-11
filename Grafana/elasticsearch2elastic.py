@@ -95,10 +95,6 @@ def fetch_numberofproperties():
     properties['numberOfProperties'] = {}
     properties['numberOfProperties']['indexname'] = {}
     properties['@timestamp'] = str(utc_datetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3])
-    # histogram = {}
-    # histogram['Histogram'] = {}
-    # histogram['Histogram']['indexname'] = {}
-    # histogram['@timestamp'] = str(utc_datetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3])
     date = str(utc_datetime.strftime('%Y.%m.%d'))
     for i in jsonData:
         p = re.compile('(\S+)-(\d{4}.\d{2}).\d{2}')    
@@ -114,8 +110,13 @@ def fetch_numberofproperties():
                 p2.stdout.close()
                 number = int(p3.communicate()[0])    
                 properties['numberOfProperties']['indexname'][m.group(1)] = number
-                # histogram['Histogram']['indexname'][m.group(1)] = m.group(2)
     post_data(properties)
+
+
+def days_between(d1, d2):
+    # d1 = datetime.datetime.strptime(d1, "%Y-%m-%d")
+    d2 = datetime.datetime.strptime(d2, "%Y-%m-%d")
+    return abs((d2 - d1).days)
 
 def fetch_numberofindicesperdate():
     utc_datetime = datetime.datetime.utcnow()
@@ -129,11 +130,18 @@ def fetch_numberofindicesperdate():
         p = re.compile('.*\s+\S+(\d{4}.\d{2}.\d{2})')
         m = p.match(line)
         if m != None:
-            if dateDict.get(m.group(1),0) != 0:
-                dateDict[m.group(1)] += 1;
+            print m.group(1)
+            print days_between(utc_datetime,m.group(1).replace(".","-"));
+            if (days_between(utc_datetime,m.group(1).replace(".","-")) < 4*30):
+                if dateDict.get(m.group(1),0) != 0:
+                    dateDict[m.group(1)] += 1;
+                else:
+                    dateDict[m.group(1)] = 1;
             else:
-                dateDict[m.group(1)] = 1;
-
+                if dateDict.get('OlderThan4Months',0) != 0:
+                    dateDict['OlderThan4Months'] += 1;
+                else:
+                    dateDict['OlderThan4Months'] = 1;
     document['Histogram'] = {} 
     for i in dateDict:
         document['Histogram']={
