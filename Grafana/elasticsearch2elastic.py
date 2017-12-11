@@ -123,30 +123,30 @@ def fetch_numberofindicesperdate():
     endpoint = "/_cat/indices"
     urlData = elasticServer + endpoint
     dateDict = {}
-    document = {}
     p1 = subprocess.Popen(['curl', urlData],stdout=subprocess.PIPE)
     output = p1.stdout.read()
     for line in iter(output.splitlines()):
         p = re.compile('.*\s+\S+(\d{4}.\d{2}.\d{2})')
         m = p.match(line)
         if m != None:
-            print m.group(1)
-            print days_between(utc_datetime,m.group(1).replace(".","-"));
-            if (days_between(utc_datetime,m.group(1).replace(".","-")) < 4*30):
-                if dateDict.get(m.group(1),0) != 0:
-                    dateDict[m.group(1)] += 1;
+            day = datetime.datetime.strptime(m.group(1).replace(".","-"),"%Y-%m-%d")
+            if (abs((utc_datetime - day).days) < 4*30):
+                if dateDict.get(day,0) != 0:
+                    dateDict[day] += 1;
                 else:
-                    dateDict[m.group(1)] = 1;
+                    dateDict[day] = 1;
             else:
-                if dateDict.get('OlderThan4Months',0) != 0:
-                    dateDict['OlderThan4Months'] += 1;
+                oldDay = datetime.datetime.strptime("2000-01-01","%Y-%m-%d")
+                if dateDict.get(oldDay,0) != 0:
+                    dateDict[oldDay] += 1;
                 else:
-                    dateDict['OlderThan4Months'] = 1;
-    document['Histogram'] = {} 
-    document['@timestamp'] = str(utc_datetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3])
+                    dateDict[oldDay] = 1;
     for i in dateDict:
-        document['Histogram'][i]=dateDict[i]
-    post_data(document);
+        document = {}
+        document['date'] = str(i.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3]) 
+        document['number'] = dateDict[i]
+        print document
+        post_data(document);
              
 
 
