@@ -143,13 +143,10 @@ def fetch_numberofindicesperdate():
                 else:
                     dateDict['OlderThan4Months'] = 1;
     document['Histogram'] = {} 
+    document['@timestamp'] = str(utc_datetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3])
     for i in dateDict:
-        document['Histogram']={
-            'date' : i,
-            'number': dateDict[i] 
-        }
-        document['@timestamp'] = str(utc_datetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3])
-        post_data(document);
+        document['Histogram'][i]=dateDict[i]
+    post_data(document);
              
 
 
